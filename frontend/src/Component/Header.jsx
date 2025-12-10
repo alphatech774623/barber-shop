@@ -6,9 +6,9 @@ import { FaUserCircle } from "react-icons/fa";
 import Account from "./Account";
 const Header = () =>{
     const user = useSelector((state)=>state.user)
-    console.log(user);
+
     const isUser = Boolean(user?.userInfo?.name)
-    console.log(isUser)
+  
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleAccount = ()=>{
@@ -26,8 +26,10 @@ const Header = () =>{
       <nav className="nav-links">
         <Link to="/">Home</Link>
         <Link to="/about">About us</Link>
+        
 
           {!isUser ?(<>
+         
         <Link to="/booking"><button className="register">Book now</button></Link>
             <Link to="/register"><button className="register">Register</button></Link>
           <Link to="/login"><button className="login">Login</button></Link>

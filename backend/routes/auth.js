@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import { isAuth } from "../middleware/auth.middleware.js";
+import { Bookings } from "../models/booking.js";
 
 const router = express.Router();
 
@@ -99,9 +100,6 @@ router.post("/logout", (req,res)=>{
 // In auth.js
 router.post("/getCurrentUser", isAuth, async (req, res) => {
   try {
-    // The 'isAuth' middleware likely attaches the user object to req.user or req.userId
-    // If you have 'req.userId' from your middleware, fetch the user data
-    // const userId = req.userId;
     const user = await User.findById(req.userId) // Fetch user and exclude password
     
     if (!user) {
@@ -115,8 +113,62 @@ router.post("/getCurrentUser", isAuth, async (req, res) => {
   }
 });
 
+router.post("/book", isAuth, async (req,res)=>{
+  try {
+    const {name, date, time, service} = req.body;
+    if(!name || !date || !time || !service){
+      return res.status(400).json({
+        msg : "All fields are required"
+      })
+    }
+
+   const booking = {
+    user : req.userId,
+    name,
+    dateOfBooking : date,
+    timeOfBooking : time,
+    service
+   }
+   const newBooking = await Bookings.create(booking);
+
+   if(!newBooking){
+    return res.status(500).json({
+      msg : "Failed to create booking"
+    })
+   }
+
+   const bookings = await Bookings.find({user : req.userId});
+
+   return res.status(201).json({
+    msg : "Booking created successfully, Your booking is pending",
+    bookings
+   })
+
+  } catch (error) {
+    console.log("Error in booking controller", error.message)
+  }
+})
+
+router.get("/getMyBookings", isAuth, async (req,res)=>{
+  try {
+    const userId = req.userId;
+    const bookings = await Bookings.find({user : userId});
+    if(!bookings){
+      return res.status(404).json({
+        msg : "No bookings found"
+      })
+    }
+    return res.status(200).json({
+      bookings
+    })
+  } catch (error) {
+    console.log("Error in getMyBooking controller", error.message)
+  }
+})
+
 
 export default router;
+
 
 
 

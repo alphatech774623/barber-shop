@@ -1,7 +1,18 @@
 import "../App.css"
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { setUserInfo } from "../redux/slices/counterSlice";
+import { setBookingInfo } from "../redux/slices/bookingSlice";
+import { useSelector } from "react-redux";
+import axios from "axios"
+import {ClipLoader } from 'react-spinners'
+import useGetBooking from "../../hooks/useGetBooking";
 
 const BookingForm = () => {
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false)
+  const user = useSelector(state=>state.user);
+  const LoggedIn = Boolean(user?.userInfo?.name);
   const [formData, setFormData] = useState({
     name: "",
     date: "",
@@ -13,15 +24,31 @@ const BookingForm = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // yaha check karoge login hai ya nhi (abhi frontend me dummy check kar rhe)
-    const isLoggedIn = false; // abhi ke liye
+    const isLoggedIn = LoggedIn; // abhi ke liye
     if (!isLoggedIn) {
       alert("⚠️ You must be login first!");
       return;
     }
-    console.log("Form Submitted:", formData);
+   try {
+    setLoading(true)
+    const result = await axios.post("http://localhost:5000/api/auth/book", formData, {withCredentials : true})
+    alert(result?.data.msg)
+    dispatch(setBookingInfo(result?.data?.bookings))
+    setLoading(false)
+   } catch (error) {
+    console.log(error.message)
+    setLoading(false)
+   }
+
+   setFormData({
+    name: "",
+    date: "",
+    time: "",
+    service: "",
+  })
   };
 
   return (
@@ -73,7 +100,11 @@ const BookingForm = () => {
           <option value="Kids haircut">Kids Haircut</option>
         </select>
 
-        <button type="submit">Submit</button>
+        <button type="submit" disabled={loading}>
+          
+          {loading ? <ClipLoader size={20} color={"white"}/> : "Submit"}
+            
+          </button>
 
         <p className="login-text">
           Already have an account?{" "}

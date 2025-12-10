@@ -19,12 +19,15 @@ import './App.css'
 import Home from './Component/Home/Home'
 import { useSelector } from 'react-redux'
 import useGetCurrentUser from '../hooks/useGetCurrentUser'
+import useGetBooking from '../hooks/useGetBooking'
+import MyBookings from './Component/MyBookings'
 
 
 
 const App = () => {
     useGetCurrentUser()
-  const user = useSelector((state)=>state.user)
+    useGetBooking()
+  const user = useSelector((state)=>state.user);
   // console.log(user)
   return (
     <>
@@ -43,6 +46,7 @@ const App = () => {
         <Route path='/about' element={<About/>}/>
         <Route path='/booking' element={<Booking/>}/>
         <Route path='/admin' element={<Admin/>}/>
+        <Route path='/myBookings' element={<MyBookings/>}/>
      
      </Routes>
                 <Footer />
