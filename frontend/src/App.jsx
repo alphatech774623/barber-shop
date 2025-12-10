@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from './Component/Header'
 import Register from './Component/Register'
 import Login from './Component/Login.'
@@ -21,32 +21,36 @@ import { useSelector } from 'react-redux'
 import useGetCurrentUser from '../hooks/useGetCurrentUser'
 import useGetBooking from '../hooks/useGetBooking'
 import MyBookings from './Component/MyBookings'
-
+import { Navigate } from 'react-router-dom'
 
 
 const App = () => {
     useGetCurrentUser()
     useGetBooking()
   const user = useSelector((state)=>state.user);
-  // console.log(user)
+  const [role, setRole] = useState(null)
+  const isLogin = user?.userInfo;
+ useEffect(() => {
+    if (isLogin) {
+      setRole(user?.userInfo?.role);
+    } else {
+      setRole(null);  // user logout ho jaye to role reset
+    }
+  }, [isLogin]);
+
   return (
     <>
     <BrowserRouter>
-      <Header />
+     { role !== "admin" && <Header />}
      <Routes>
 
-      <Route path='/' element={<Home/>}/>
-        <Route path='/services' element={<Services/>}/>
-        <Route path='/pricing' element={<Pricing/>}/>
-        <Route path='/gallery' element={<Gallery/>}/>
-        <Route path='/testimonial' element={<Testimonial/>}/>
-        <Route path='/contact' element={<Contact/>}/>
-        <Route path='/register' element={<Register/>}/>
-        <Route path='/login' element={<Login/>}/>
+      <Route path='/' element={(role == "admin" ? (<Navigate to="/admin"/>) : <Home/>)}/>
+        <Route path='/register' element={!isLogin ? <Register/> : (<Navigate to="/"/>)}/>
+        <Route path='/login' element={!isLogin ? <Login/> : (<Navigate to="/"/>)}/>
         <Route path='/about' element={<About/>}/>
-        <Route path='/booking' element={<Booking/>}/>
-        <Route path='/admin' element={<Admin/>}/>
-        <Route path='/myBookings' element={<MyBookings/>}/>
+        <Route path='/booking' element={role == "user" ? <Booking/> : (<Navigate to="/"/>)}/>
+        <Route path='/admin' element={role == "admin" ? <Admin/> : (<Navigate to="/"/>)}/>
+        <Route path='/myBookings' element={role == "user" ? <MyBookings/> : (<Navigate to="/"/>)}/>
      
      </Routes>
                 <Footer />

@@ -7,6 +7,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setUserInfo } from "../redux/slices/counterSlice.js";
 import { useNavigate } from "react-router-dom";
+import { setBookingInfo } from "../redux/slices/bookingSlice.js";
 const Login = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -30,7 +31,8 @@ const Login = () => {
      // Backend API call
      const res = await axios.post("http://localhost:5000/api/auth/login", formData, {withCredentials : true});
       dispatch(setUserInfo(res?.data?.user));
-     setShowPopup(true); // Success popup
+      dispatch(setBookingInfo(res?.data?.bookings))
+      setShowPopup(true); 
     setTimeout(() => setShowPopup(false), 2000);
     navigate("/")
     setFormData({ email: "", password: "" });   } catch (err) {

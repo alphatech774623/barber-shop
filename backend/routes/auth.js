@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import { isAuth } from "../middleware/auth.middleware.js";
 import { Bookings } from "../models/booking.js";
+import { Contact } from "../models/contact.js";
 
 const router = express.Router();
 
@@ -77,13 +78,12 @@ router.post("/login", async (req, res) => {
       sameSite : process.env.NODE_ENV === "production" ? "none" : "lax",
     })
       
+    const MyBookings = await Bookings.find({user : user._id});
+
     res.json({
       msg: " Login Successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user,
+      bookings : MyBookings
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -165,6 +165,132 @@ router.get("/getMyBookings", isAuth, async (req,res)=>{
     console.log("Error in getMyBooking controller", error.message)
   }
 })
+
+router.get("/getAllBookings", async (req,res)=>{
+  try {
+    const bookings = await Bookings.find();
+    if(!bookings){
+      return res.status(404).json({
+        msg : "No bookings found"
+      })
+    }
+
+    return res.status(200).json({
+      bookings
+    })
+
+  } catch (error) {
+    console.log("Error in allBookings controller", error.message)
+  }
+})
+
+
+router.post("/updateBookingStatus", async (req,res)=>{
+  try {
+    const {id, newStatus} = req.body;
+    const booking = await Bookings.findByIdAndUpdate(id, {
+      status : newStatus
+    },{new : true})
+
+    if(!booking){
+      return res.status(404).json({
+        msg : "Booking not found"
+      })
+    }
+
+    const bookings = await Bookings.find();
+
+    return res.status(200).json({
+      msg : "Booking status updated successfully",
+      bookings
+    })
+
+  } catch (error) {
+    console.log("Error in updateBookingStatus controller", error.message)
+  }
+})
+
+
+router.get("/getAllUsers", async (req,res)=>{
+  try {
+    const users = await User.find({role : {
+      $ne : "admin"
+    }}).select("-password");
+    if(!users){
+      return res.status(404).json({
+        msg: "Users not found",
+      })
+    }
+
+    return res.status(200).json({
+      msg : "Users fetched successfully",
+      users
+    })
+
+  } catch (error) {
+    console.log("Error in getALlUsers", error.message)
+  }
+})
+
+
+
+
+
+
+/* ===========================
+   1️⃣ CONTACT SAVE API
+=========================== */
+router.post("/contact", async (req, res) => {
+  try {
+    const { name, email, phone, message } = req.body;
+
+    if (!name || !email || !phone || !message) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const newContact = new Contact({
+      name,
+      email,
+      phone,
+      message,
+    });
+
+    await newContact.save();
+
+    res.status(201).json({
+      success: true,
+      msg: "Message sent successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Server Error",
+      error: error.message,
+    });
+  }
+});
+
+/* ===========================
+   2️⃣ ADMIN - GET ALL CONTACTS
+=========================== */
+router.get("/contact", async (req, res) => {
+  try {
+    const contacts = await Contact.find().sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: contacts.length,
+      contacts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      msg: "Server Error",
+      error: error.message,
+    });
+  }
+});
+
 
 
 export default router;

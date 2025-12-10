@@ -1,22 +1,35 @@
 import React, { useState } from "react";
 import "../App.css"
-
+import AdminDashboard from "./AdminDashboard";
+import AdminCustomers from "./AdminCustomers";
+import AdminContacts from "./AdminContacts";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import axios from "axios";
+import { setUserInfo } from "../redux/slices/counterSlice";
 const Admin = () => {
+  const user = useSelector(state=> state.user)
+  const dispatch = useDispatch();
+  const handleLogout = async ()=>{
+    try {
+            const result = await axios.post("http://localhost:5000/api/auth/logout", {}, {withCredentials : true})
+            dispatch(setUserInfo(null));
+            alert(result?.data?.msg)
+        } catch (error) {
+            console.log(error.message)
+        }
+  }
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <h2>📊 Welcome Admin Dashboard</h2>;
+        return <AdminDashboard/>;
       case "customers":
-        return <h2>👥 Customers List</h2>;
-      case "bookings":
-        return <h2>📅 All Bookings</h2>;
-      case "services":
-        return <h2>💈 Manage Services</h2>;
-      case "settings":
-        return <h2>⚙️ Settings Section</h2>;
+        return <AdminCustomers/>;
+      case "contacts":
+        return <AdminContacts/>;
       default:
         return <h2>📊 Welcome Admin Dashboard</h2>;
     }
@@ -41,22 +54,16 @@ const Admin = () => {
             Customers
           </li>
           <li
-            className={activeTab === "bookings" ? "active" : ""}
-            onClick={() => setActiveTab("bookings")}
+            className={activeTab === "contacts" ? "active" : ""}
+            onClick={() => setActiveTab("contacts")}
           >
-            Bookings
+            Contacts
           </li>
           <li
-            className={activeTab === "services" ? "active" : ""}
-            onClick={() => setActiveTab("services")}
+            className="text-danger"
+            onClick={handleLogout}
           >
-            Services
-          </li>
-          <li
-            className={activeTab === "settings" ? "active" : ""}
-            onClick={() => setActiveTab("settings")}
-          >
-            Settings
+            Logout
           </li>
         </ul>
       </div>
@@ -70,7 +77,7 @@ const Admin = () => {
           >
             ☰
           </button>
-          <h1>Admin Panel</h1>
+          <h1>Welcome, {user?.userInfo?.name || "Ashu Sharma"}</h1>
         </header>
         <div className="content">{renderContent()}</div>
       </div>
